@@ -4,11 +4,6 @@ import (
 	"testing"
 )
 
-// All of the methods should use the same context and ethclient, probably will
-// make them methods of a struct
-
-func Fixture() {}
-
 // retrieve transaction, store it into the transaction struct
 func TestGetTx(t *testing.T) {}
 

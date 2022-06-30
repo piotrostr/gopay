@@ -46,6 +46,9 @@ back it can be re-checked.
 The tx data contains a hash of the functionality to be provided,
 done both on the server side and the client side to ensure that the pipeline is secure.
 
+Ideally, I would like to replicate the way that Stripe or other payment
+processors work but for Crypto.
+
 ## Additional assumptions
 
 The main api-route should be idempotent, meaning that
