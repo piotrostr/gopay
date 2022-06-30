@@ -72,22 +72,27 @@ func Get(url ...string) *Client {
 
 func RunNode() error {
 	ctx, cancel := context.WithCancel(ctx)
+	errChan := make(chan error)
 	defer cancel()
 	cmd := exec.CommandContext(
 		ctx, "geth", "--dev", "--http", "--http.api", "eth,web3,personal,net", "--http.corsdomain", "http://remix.ethereum.org")
-	cmd.Stdout = os.Stdout
-	err := cmd.Start()
-	fmt.Printf("running node with PID %d\n", cmd.Process.Pid)
-	if err != nil {
-		return err
-	}
-	return nil
+	go func() {
+		cmd.Stdout = os.Stdout
+		fmt.Printf("running node")
+		err := cmd.Run()
+		if err != nil {
+			fmt.Println(err)
+			errChan <- err
+		}
+	}()
+	return <-errChan
 }
 
-func (c *Client) Balance() {
+func (c *Client) Balance() *big.Int {
 	balance, err := c.client.BalanceAt(ctx, c.address, nil)
 	checkErr(err)
 	fmt.Println("Balance: ", balance)
+	return balance
 }
 
 /* this method will be a mock to run on ganache */

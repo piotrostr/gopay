@@ -1,22 +1,19 @@
 package client
 
 import (
-	"context"
+	"fmt"
+	"math/big"
 	"testing"
-	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 )
 
 func TestRunNode(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
 	err := RunNode()
 	if err != nil {
+		fmt.Println(err)
 		t.Error(err)
 	}
-	<-ctx.Done()
 }
 
 func TestGetsClientRight(t *testing.T) {
@@ -29,5 +26,25 @@ func TestGetsClientRight(t *testing.T) {
 	}
 	if client.address == (common.Address{}) {
 		t.Error("client.address is empty")
+	}
+}
+
+func TestGetBalance(t *testing.T) {
+	err := RunNode()
+	if err != nil {
+		t.Error(err)
+	}
+	client := Get()
+	balance := client.Balance()
+	if balance == big.NewInt(0) {
+		t.Error("balance is 0")
+	}
+}
+
+func TestSendsTx(t *testing.T) {
+	client := Get()
+	err := client.SendTx()
+	if err != nil {
+		t.Error(err)
 	}
 }
