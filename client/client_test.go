@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"math/big"
 	"testing"
 
@@ -33,6 +34,7 @@ func TestGetsClientRight(t *testing.T) {
 func TestGetBalance(t *testing.T) {
 	client := Get()
 	balance := client.Balance()
+	fmt.Println(balance)
 	if balance == big.NewInt(0) {
 		t.Error("balance is 0")
 	}

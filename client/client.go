@@ -41,10 +41,6 @@ func printJson(data any) {
 }
 
 func Get(url ...string) *Client {
-	if os.Getenv("PRIVATE_KEY") == "" {
-		panic("PRIVATE_KEY is not set")
-	}
-
 	if len(url) == 0 {
 		if os.Getenv("RPC_URL") == "" {
 			url = append(url, "http://localhost:8545")
@@ -84,7 +80,6 @@ func RunNode() error {
 func (c *Client) Balance() *big.Int {
 	balance, err := c.client.BalanceAt(ctx, c.address, nil)
 	checkErr(err)
-	fmt.Println("Balance: ", balance)
 	return balance
 }
 
