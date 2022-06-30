@@ -40,17 +40,10 @@ func printJson(data any) {
 	fmt.Println(string(barr))
 }
 
-func CheckEnv() {
+func Get(url ...string) *Client {
 	if os.Getenv("PRIVATE_KEY") == "" {
 		panic("PRIVATE_KEY is not set")
 	}
-	if os.Getenv("RPC_URL") == "" {
-		fmt.Println("RPC_URL is not set, will dial http://localhost:8545")
-	}
-}
-
-func Get(url ...string) *Client {
-	CheckEnv()
 
 	if len(url) == 0 {
 		if os.Getenv("RPC_URL") == "" {
@@ -108,7 +101,11 @@ func (c *Client) SendTx() *types.Transaction {
 		big.NewInt(1),
 		nil,
 	)
-	signedTx, err := types.SignTx(tx, types.HomesteadSigner{}, c.privateKey)
+	signedTx, err := types.SignTx(
+		tx,
+		types.NewEIP155Signer(big.NewInt(1337)),
+		c.privateKey,
+	)
 	checkErr(err)
 
 	err = c.client.SendTransaction(ctx, signedTx)

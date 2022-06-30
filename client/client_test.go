@@ -1,13 +1,13 @@
 package client
 
 import (
-	"fmt"
 	"math/big"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
 )
 
+/*
 func TestRunNode(t *testing.T) {
 	err := RunNode()
 	if err != nil {
@@ -15,6 +15,7 @@ func TestRunNode(t *testing.T) {
 		t.Error(err)
 	}
 }
+*/
 
 func TestGetsClientRight(t *testing.T) {
 	client := Get()
@@ -30,10 +31,6 @@ func TestGetsClientRight(t *testing.T) {
 }
 
 func TestGetBalance(t *testing.T) {
-	err := RunNode()
-	if err != nil {
-		t.Error(err)
-	}
 	client := Get()
 	balance := client.Balance()
 	if balance == big.NewInt(0) {

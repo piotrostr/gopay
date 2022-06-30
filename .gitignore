@@ -1,1 +1,4 @@
 gopay
+.env
+geth
+keystore
