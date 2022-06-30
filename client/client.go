@@ -40,8 +40,26 @@ func printJson(data any) {
 	fmt.Println(string(barr))
 }
 
-func Get() *Client {
-	client, err := ethclient.Dial(os.Getenv("RPC_URL"))
+func CheckEnv() {
+	if os.Getenv("PRIVATE_KEY") == "" {
+		panic("PRIVATE_KEY is not set")
+	}
+	if os.Getenv("RPC_URL") == "" {
+		fmt.Println("RPC_URL is not set, will dial http://localhost:8545")
+	}
+}
+
+func Get(url ...string) *Client {
+	CheckEnv()
+
+	if len(url) == 0 {
+		if os.Getenv("RPC_URL") == "" {
+			url = append(url, "http://localhost:8545")
+		} else {
+			url = append(url, os.Getenv("RPC_URL"))
+		}
+	}
+	client, err := ethclient.Dial(url[0])
 	checkErr(err)
 
 	privateKey, err := crypto.HexToECDSA(os.Getenv("PRIVATE_KEY"))
@@ -52,14 +70,14 @@ func Get() *Client {
 	return &Client{client, privateKey, address}
 }
 
-func (c *Client) RunNode() error {
+func RunNode() error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	cmd := exec.CommandContext(
 		ctx, "geth", "--dev", "--http", "--http.api", "eth,web3,personal,net", "--http.corsdomain", "http://remix.ethereum.org")
 	cmd.Stdout = os.Stdout
 	err := cmd.Start()
-	// TODO make the node shut down when the context is cancelled
+	fmt.Printf("running node with PID %d\n", cmd.Process.Pid)
 	if err != nil {
 		return err
 	}
