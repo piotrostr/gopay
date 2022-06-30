@@ -5,15 +5,16 @@ import (
 	"crypto/ecdsa"
 	"encoding/json"
 	"fmt"
+	"log"
 	"math/big"
 	"os"
-	"os/exec"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/joho/godotenv"
 )
 
 const DEAD = "0x0000000000000000000000000000000000000000"
@@ -28,11 +29,11 @@ type Client struct {
 
 func checkErr(err error) {
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 }
 
-func printJson(data any) {
+func PrintJson(data any) {
 	barr, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		fmt.Println(err.Error())
@@ -40,15 +41,11 @@ func printJson(data any) {
 	fmt.Println(string(barr))
 }
 
-func Get(url ...string) *Client {
-	if len(url) == 0 {
-		if os.Getenv("RPC_URL") == "" {
-			url = append(url, "http://localhost:8545")
-		} else {
-			url = append(url, os.Getenv("RPC_URL"))
-		}
-	}
-	client, err := ethclient.Dial(url[0])
+func Get() *Client {
+	err := godotenv.Load("../.env")
+	checkErr(err)
+
+	client, err := ethclient.Dial(os.Getenv("RPC_URL"))
 	checkErr(err)
 
 	privateKey, err := crypto.HexToECDSA(os.Getenv("PRIVATE_KEY"))
@@ -59,24 +56,6 @@ func Get(url ...string) *Client {
 	return &Client{client, privateKey, address}
 }
 
-func RunNode() error {
-	ctx, cancel := context.WithCancel(ctx)
-	errChan := make(chan error)
-	defer cancel()
-	cmd := exec.CommandContext(
-		ctx, "geth", "--dev", "--http", "--http.api", "eth,web3,personal,net", "--http.corsdomain", "http://remix.ethereum.org")
-	go func() {
-		cmd.Stdout = os.Stdout
-		fmt.Printf("running node")
-		err := cmd.Run()
-		if err != nil {
-			fmt.Println(err)
-			errChan <- err
-		}
-	}()
-	return <-errChan
-}
-
 func (c *Client) Balance() *big.Int {
 	balance, err := c.client.BalanceAt(ctx, c.address, nil)
 	checkErr(err)
@@ -84,7 +63,7 @@ func (c *Client) Balance() *big.Int {
 }
 
 /* this method will be a mock to run on ganache */
-func (c *Client) SendTx() *types.Transaction {
+func (c *Client) SendTx() (*types.Transaction, error) {
 	nonce, err := c.client.NonceAt(ctx, c.address, nil)
 	checkErr(err)
 
@@ -105,7 +84,7 @@ func (c *Client) SendTx() *types.Transaction {
 
 	err = c.client.SendTransaction(ctx, signedTx)
 	checkErr(err)
-	return signedTx
+	return signedTx, nil
 }
 
 func (c *Client) GetTx(txAddress string) {
@@ -113,11 +92,10 @@ func (c *Client) GetTx(txAddress string) {
 	tx, isPending, err := c.client.TransactionByHash(ctx, common.HexToHash(txAddress))
 	checkErr(err)
 	if isPending {
-		fmt.Println("Pending")
+		fmt.Println("Pending tx..")
 		time.Sleep(time.Second * 1)
 		c.GetTx(txAddress)
 	} else {
-		fmt.Println("Not pending")
-		printJson(tx)
+		PrintJson(tx)
 	}
 }
