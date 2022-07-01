@@ -9,12 +9,10 @@ import (
 	"gorm.io/gorm"
 )
 
-type TransactionClientside struct {
+type Transaction struct {
 	gorm.Model
-	TxHash      string        `json:"tx_hash,omitempty"`
-	Mined       bool          `json:"mined,omitempty"`
-	ContentHash string        `json:"content_hash,omitempty"`
-	OnChain     *StateOnChain `json:"on_chain,omitempty"`
+	TxHash string `json:"tx_hash,omitempty"`
+	Mined  bool   `json:"mined,omitempty"`
 }
 
 type StateOnChain struct {
@@ -37,7 +35,7 @@ func Get() *gorm.DB {
 	fmt.Println(dsn)
 	dialector := postgres.New(postgres.Config{DSN: dsn, PreferSimpleProtocol: true})
 	db, err := gorm.Open(dialector, &gorm.Config{})
-	db.AutoMigrate(&TransactionClientside{}, &StateOnChain{})
+	db.AutoMigrate(&Transaction{}, &StateOnChain{})
 	if err != nil {
 		fmt.Printf("err connecting to db: %s\n", err.Error())
 		return nil

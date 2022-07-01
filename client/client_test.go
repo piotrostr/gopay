@@ -7,16 +7,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-/*
-func TestRunNode(t *testing.T) {
-	err := RunNode()
-	if err != nil {
-		fmt.Println(err)
-		t.Error(err)
-	}
-}
-*/
-
 func TestGetsClientRight(t *testing.T) {
 	client := Get()
 	if client.client == nil {

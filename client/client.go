@@ -87,15 +87,16 @@ func (c *Client) SendTx() (*types.Transaction, error) {
 	return signedTx, nil
 }
 
-func (c *Client) GetTx(txAddress string) {
+func (c *Client) GetTx(txAddress string) (*types.Transaction, error) {
 	common.HexToAddress(txAddress)
 	tx, isPending, err := c.client.TransactionByHash(ctx, common.HexToHash(txAddress))
 	checkErr(err)
 	if isPending {
 		fmt.Println("Pending tx..")
 		time.Sleep(time.Second * 1)
-		c.GetTx(txAddress)
+		return c.GetTx(txAddress)
 	} else {
 		PrintJson(tx)
 	}
+	return tx, nil
 }
