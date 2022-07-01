@@ -1,8 +1,9 @@
 package db
 
 import (
-	"fmt"
 	"testing"
+
+	"github.com/piotrostr/gopay/schema"
 )
 
 func TestStore(t *testing.T) {
@@ -11,13 +12,5 @@ func TestStore(t *testing.T) {
 		t.Errorf("db is nil")
 	}
 
-	db.Create(&Transaction{TxHash: "asdf", Mined: true})
-
-	var tx Transaction
-	db.First(&tx)
-	fmt.Printf("%+v\n", tx)
-
-	if tx.TxHash != "asdf" {
-		t.Errorf("tx hash is not asdf")
-	}
+	db.Create(&schema.Transaction{Hash: "asdf", Type: "asdf"})
 }

@@ -5,23 +5,10 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/piotrostr/gopay/schema"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
-
-type Transaction struct {
-	gorm.Model
-	TxHash string `json:"tx_hash,omitempty"`
-	Mined  bool   `json:"mined,omitempty"`
-}
-
-type StateOnChain struct {
-	gorm.Model
-	TxHash       string `json:"tx_hash,omitempty"`
-	ContentHash  string `json:"content_hash,omitempty"`
-	PayeeAddress string `json:"payee_address,omitempty"`
-	PayeePaid    string `json:"payee_paid,omitempty"`
-}
 
 func Get() *gorm.DB {
 	godotenv.Load("../.env")
@@ -35,7 +22,7 @@ func Get() *gorm.DB {
 	fmt.Println(dsn)
 	dialector := postgres.New(postgres.Config{DSN: dsn, PreferSimpleProtocol: true})
 	db, err := gorm.Open(dialector, &gorm.Config{})
-	db.AutoMigrate(&Transaction{}, &StateOnChain{})
+	db.AutoMigrate(&schema.Transaction{})
 	if err != nil {
 		fmt.Printf("err connecting to db: %s\n", err.Error())
 		return nil
