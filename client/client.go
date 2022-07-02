@@ -89,7 +89,10 @@ func (c *Client) SendTx() (*types.Transaction, error) {
 
 func (c *Client) GetTx(txAddress string) (*types.Transaction, error) {
 	common.HexToAddress(txAddress)
-	tx, isPending, err := c.client.TransactionByHash(ctx, common.HexToHash(txAddress))
+	tx, isPending, err := c.client.TransactionByHash(
+		ctx,
+		common.HexToHash(txAddress),
+	)
 	checkErr(err)
 	if isPending {
 		fmt.Println("Pending tx..")
