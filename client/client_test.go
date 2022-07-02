@@ -9,8 +9,8 @@ import (
 
 func TestGetsClientRight(t *testing.T) {
 	client := Get()
-	if client.client == nil {
-		t.Error("client.client is nil")
+	if client.Eth == nil {
+		t.Error("client.Eth is nil")
 	}
 	if client.privateKey == nil {
 		t.Error("client.privateKey is nil")
@@ -22,7 +22,12 @@ func TestGetsClientRight(t *testing.T) {
 
 func TestGetBalance(t *testing.T) {
 	client := Get()
-	balance := client.Balance()
+
+	balance, err := client.Balance()
+	if err != nil {
+		t.Error(err)
+	}
+
 	if balance == big.NewInt(0) {
 		t.Error("balance is 0")
 	}

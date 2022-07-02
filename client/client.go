@@ -22,15 +22,9 @@ const DEAD = "0x0000000000000000000000000000000000000000"
 var ctx = context.Background()
 
 type Client struct {
-	client     *ethclient.Client
+	Eth        *ethclient.Client
 	privateKey *ecdsa.PrivateKey
 	address    common.Address
-}
-
-func checkErr(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
 }
 
 func PrintJson(data any) {
@@ -43,29 +37,39 @@ func PrintJson(data any) {
 
 func Get() *Client {
 	err := godotenv.Load("../.env")
-	checkErr(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	client, err := ethclient.Dial(os.Getenv("RPC_URL"))
-	checkErr(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	privateKey, err := crypto.HexToECDSA(os.Getenv("PRIVATE_KEY"))
-	checkErr(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	address := crypto.PubkeyToAddress(privateKey.PublicKey)
 
 	return &Client{client, privateKey, address}
 }
 
-func (c *Client) Balance() *big.Int {
-	balance, err := c.client.BalanceAt(ctx, c.address, nil)
-	checkErr(err)
-	return balance
+func (c *Client) Balance() (*big.Int, error) {
+	balance, err := c.Eth.BalanceAt(ctx, c.address, nil)
+	if err != nil {
+		return nil, err
+	}
+	return balance, nil
 }
 
 /* this method will be a mock to run on ganache */
 func (c *Client) SendTx() (*types.Transaction, error) {
-	nonce, err := c.client.NonceAt(ctx, c.address, nil)
-	checkErr(err)
+	nonce, err := c.Eth.NonceAt(ctx, c.address, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	tx := types.NewTransaction(
 		nonce,
@@ -80,26 +84,32 @@ func (c *Client) SendTx() (*types.Transaction, error) {
 		types.NewEIP155Signer(big.NewInt(1337)),
 		c.privateKey,
 	)
-	checkErr(err)
+	if err != nil {
+		return nil, err
+	}
 
-	err = c.client.SendTransaction(ctx, signedTx)
-	checkErr(err)
+	err = c.Eth.SendTransaction(ctx, signedTx)
+	if err != nil {
+		return nil, err
+	}
+
 	return signedTx, nil
 }
 
 func (c *Client) GetTx(txAddress string) (*types.Transaction, error) {
 	common.HexToAddress(txAddress)
-	tx, isPending, err := c.client.TransactionByHash(
+	tx, isPending, err := c.Eth.TransactionByHash(
 		ctx,
 		common.HexToHash(txAddress),
 	)
-	checkErr(err)
+	if err != nil {
+		return nil, err
+	}
+
 	if isPending {
-		fmt.Println("Pending tx..")
 		time.Sleep(time.Second * 1)
 		return c.GetTx(txAddress)
-	} else {
-		PrintJson(tx)
 	}
+
 	return tx, nil
 }
