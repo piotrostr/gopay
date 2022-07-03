@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -11,7 +12,10 @@ import (
 )
 
 func Get() *gorm.DB {
-	godotenv.Load("../.env")
+	err := godotenv.Load("../.env")
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s port=%s",
 		os.Getenv("POSTGRES_HOST"),
@@ -19,10 +23,17 @@ func Get() *gorm.DB {
 		os.Getenv("POSTGRES_PASSWORD"),
 		os.Getenv("POSTGRES_PORT"),
 	)
-	fmt.Println(dsn)
 	dialector := postgres.New(postgres.Config{DSN: dsn, PreferSimpleProtocol: true})
 	db, err := gorm.Open(dialector, &gorm.Config{})
-	db.AutoMigrate(&schema.Transaction{})
+	if err != nil {
+		panic(err)
+	}
+
+	err = db.AutoMigrate(&schema.Transaction{})
+	if err != nil {
+		panic(err)
+	}
+
 	if err != nil {
 		fmt.Printf("err connecting to db: %s\n", err.Error())
 		return nil
