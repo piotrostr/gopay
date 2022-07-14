@@ -8,6 +8,7 @@ import (
 	"log"
 	"math/big"
 	"net/http"
+	"os"
 
 	ethereum "github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
@@ -38,6 +39,8 @@ var payments = Payments{}
 
 var ctx = context.Background()
 
+var CONTRACT_ADDRESS = Address(os.Getenv("CONTRACT_ADDRESS"))
+
 func Verify(p *Payment, tx *types.Transaction) bool {
 	if p.ContentHash != tx.Hash().Hex() {
 		p.Error = fmt.Errorf("content hash mismatch")
@@ -61,7 +64,11 @@ func Verify(p *Payment, tx *types.Transaction) bool {
 	}
 
 	if p.To != Address(tx.To().Hex()) {
-		// TODO check if this is the contract address as well here
+		p.Error = fmt.Errorf("recipient address mismatch")
+		return false
+	}
+
+	if CONTRACT_ADDRESS != "" && p.To != CONTRACT_ADDRESS {
 		p.Error = fmt.Errorf("recipient address mismatch")
 		return false
 	}
