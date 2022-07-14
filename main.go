@@ -44,16 +44,33 @@ func Verify(p *Payment, tx *types.Transaction) bool {
 		return false
 	}
 
-	// TODO verify sender address as well
+	var from common.Address
+	var err error
+	from, err = types.Sender(types.NewEIP155Signer(tx.ChainId()), tx)
+	if err != nil {
+		from, err = types.Sender(types.HomesteadSigner{}, tx)
+		if err != nil {
+			p.Error = fmt.Errorf("failed to get sender")
+			return false
+		}
+	}
 
-	if p.To != Address(tx.To().Hex()) {
-		p.Error = fmt.Errorf("to address mismatch")
+	if p.From != Address(from.Hex()) {
+		p.Error = fmt.Errorf("sender address mismatch")
 		return false
 	}
+
+	if p.To != Address(tx.To().Hex()) {
+		// TODO check if this is the contract address as well here
+		p.Error = fmt.Errorf("recipient address mismatch")
+		return false
+	}
+
 	if p.Amount.Cmp(tx.Value()) != 0 {
 		p.Error = fmt.Errorf("amount mismatch")
 		return false
 	}
+
 	return true
 }
 
